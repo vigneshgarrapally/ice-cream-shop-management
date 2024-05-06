@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Order History{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Order History</h2>
+    {% for order in orders %}
+    <div class="card mb-3">
+        <div class="card-header">
+            Order Placed on: {{ order.order_time.strftime('%Y-%m-%d %H:%M:%S') }}
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">Order Details</h5>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Size</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.product.size }}</td>
+                        <td>${{ item.product.price }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>${{ item.item_price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <p class="card-text"><strong>Total Price:</strong> ${{ order.total_amount }}</p>
+            <p class="card-text"><strong>GST:</strong> ${{ order.gst_amount }}</p>
+            <p class="card-text"><strong>Grand Total:</strong> ${{ order.final_amount }}</p>
+        </div>
+    </div>
+    {% else %}
+    <p>No orders found.</p>
+    {% endfor %}
+</div>
+{% endblock %}

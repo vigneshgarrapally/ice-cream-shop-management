@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .centered-content {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 80vh; /* Adjust height as needed */
+        text-align: center;
+    }
+
+    .background {
+        background-image: url('icecream.jpg');
+        background-size: cover;
+        background-position: center;
+    }
+
+    .animated-element {
+        animation: fadeIn 2s;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+</style>
+
+<div class="background">
+    <div class="centered-content">
+        <div class="animated-element">
+            <h1 class="display-4">Welcome to Ice Cream Wala</h1>
+            <p class="lead">Manage your ice cream orders and sales effortlessly in one place.</p>
+            <hr class="my-4">
+            <a class="btn btn-primary btn-lg" href="/login" role="button">Get Started</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

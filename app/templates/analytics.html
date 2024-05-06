@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Analytics{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Sales Analytics Dashboard</h1>
+
+    <div class="row text-center mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Daily Sales</h5>
+                    <p class="card-text">${{ daily_sales }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Weekly Sales</h5>
+                    <p class="card-text">${{ weekly_sales }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Monthly Sales</h5>
+                    <p class="card-text">${{ monthly_sales }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Yearly Sales</h5>
+                    <p class="card-text">${{ yearly_sales }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h3>Top 5 Popular Products</h3>
+            <ul class="list-group">
+                {% for product, total_sold in popular_products %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ product }}
+                    <span class="badge bg-primary rounded-pill">{{ total_sold }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="col-md-6">
+            <h3>Monthly Sales</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Total Sales</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for month, total in monthly_sales_last_year %}
+                    <tr>
+                        <td>{{ month }}</td>
+                        <td>${{ total }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-4 text-center">
+        <h3>Sales Distribution by Product</h3>
+        <div id="productSalesPieChart" style="display: inline-block; width: 100%; max-width: 550px; height: 400px;"></div>
+    </div>
+</div>
+
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+    // Load google charts
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawProductSalesChart);
+
+    // Draw the pie chart for product sales
+    function drawProductSalesChart() {
+        var data = google.visualization.arrayToDataTable([
+            ['Product', 'Sales'],
+            {% for product, total_sales in product_sales %}
+            ['{{ product }}', {{ total_sales }}],
+            {% endfor %}
+        ]);
+
+        var options = {
+            title: 'Product Sales Distribution',
+            width: '100%',
+            height: '100%',
+            pieHole: 0.4,  // Optional: for donut style
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('productSalesPieChart'));
+        chart.draw(data, options);
+    }
+</script>
+{% endblock %}

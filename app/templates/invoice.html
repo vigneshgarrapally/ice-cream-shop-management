@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}Create Invoice{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Create New Order</h2>
+    <button id="newOrderBtn" class="btn btn-primary mb-3">Create New Order</button>
+    <div id="orderForm" style="display:none;">
+        <form id="addItemForm">
+            <div class="mb-3">
+                <label for="productSelect" class="form-label">Product</label>
+                <select id="productSelect" class="form-select" required onchange="updateSizes()">
+                    <option value="">Select Product</option>
+                    {% for product in products %}
+                    {% if not loop.first %}
+                    {% if products[loop.index - 2].name != product.name %}
+                    <option value="{{ product.name }}">{{ product.name }}</option>
+                    {% endif %}
+                    {% else %}
+                    <option value="{{ product.name }}">{{ product.name }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="sizeSelect" class="form-label">Size</label>
+                <select id="sizeSelect" class="form-select" required>
+                    <!-- Sizes will be populated based on product selection -->
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="quantity" class="form-label">Quantity</label>
+                <input type="number" id="quantity" class="form-control" required>
+            </div>
+            <button type="button" id="addItemBtn" class="btn btn-secondary">Add Item</button>
+        </form>
+        <h4>Order Details:</h4>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Size</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody id="orderItems">
+                <!-- Items will be added here dynamically -->
+            </tbody>
+        </table>
+        <div id="invoiceSummary">
+            <p>GST (18%): <span id="gstAmount">$0</span></p>
+            <p>Grand Total: <span id="grandTotal">$0</span></p>
+        </div>
+        <button type="button" id="completeOrderBtn" class="btn btn-success">Complete Order</button>
+    </div>
+</div>
+
+<script>
+function updateSizes() {
+    var productSelect = document.getElementById('productSelect');
+    var sizeSelect = document.getElementById('sizeSelect');
+    var selectedProduct = productSelect.value;
+    sizeSelect.innerHTML = ''; // Clear previous options
+
+    {% for product in products %}
+    if ("{{ product.name }}" == selectedProduct) {
+        var option = document.createElement('option');
+        option.value = "{{ product.id }}";
+        option.textContent = "{{ product.size }} - ${{ product.price }}";
+        option.setAttribute('data-price', "{{ product.price }}");
+        sizeSelect.appendChild(option);
+    }
+    {% endfor %}
+}
+
+document.getElementById('newOrderBtn').addEventListener('click', function() {
+    document.getElementById('orderForm').style.display = 'block';
+    document.getElementById('orderItems').innerHTML = ''; // Clear previous items
+    document.getElementById('gstAmount').textContent = '$0';
+    document.getElementById('grandTotal').textContent = '$0';
+});
+
+document.getElementById('addItemBtn').addEventListener('click', function() {
+    var sizeSelect = document.getElementById('sizeSelect');
+    var quantityInput = document.getElementById('quantity');
+    var selectedOption = sizeSelect.options[sizeSelect.selectedIndex];
+    var product = document.getElementById('productSelect').options[document.getElementById('productSelect').selectedIndex].text;
+    var size = selectedOption.text.split(' - ')[0];
+    var price = selectedOption.getAttribute('data-price');
+    var productId = selectedOption.value;
+    var quantity = quantityInput.value;
+    var subtotal = parseFloat(price) * parseInt(quantity);
+
+    var newRow = `<tr data-product-id="${productId}">
+        <td>${product}</td>
+        <td>${size}</td>
+        <td>$${price}</td>
+        <td>${quantity}</td>
+        <td>$${subtotal.toFixed(2)}</td>
+    </tr>`;
+
+    document.getElementById('orderItems').insertAdjacentHTML('beforeend', newRow);
+
+    // Reset the form inputs
+    quantityInput.value = '';
+    updateInvoiceSummary();
+});
+
+function updateInvoiceSummary() {
+    var total = 0;
+    document.querySelectorAll('#orderItems tr').forEach(row => {
+        total += parseFloat(row.cells[4].textContent.substring(1)); // remove the dollar sign and parse
+    });
+
+    var gst = total * 0.18; // 18% GST
+    var grandTotal = total + gst;
+
+    document.getElementById('gstAmount').textContent = `$${gst.toFixed(2)}`;
+    document.getElementById('grandTotal').textContent = `$${grandTotal.toFixed(2)}`;
+}
+
+document.getElementById('completeOrderBtn').addEventListener('click', function() {
+    var items = [];
+    var rows = document.getElementById('orderItems').querySelectorAll('tr');
+    rows.forEach(row => {
+        items.push({
+            product_id: row.getAttribute('data-product-id'),
+            quantity: parseInt(row.cells[3].textContent)
+        });
+    });
+
+    fetch('/invoice', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({items: items})
+    }).then(response => response.json())
+      .then(data => {
+        if(data.status === 'success') {
+            alert('Order completed successfully!');
+            document.getElementById('orderForm').style.display = 'none';
+        } else {
+            alert('Error completing order.');
+        }
+    });
+});
+</script>
+{% endblock %}
