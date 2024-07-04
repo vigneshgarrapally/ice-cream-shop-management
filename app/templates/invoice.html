@@ -30,7 +30,7 @@
             </div>
             <div class="mb-3">
                 <label for="quantity" class="form-label">Quantity</label>
-                <input type="number" id="quantity" class="form-control" required>
+                <input type="number" id="quantity" class="form-control" required min="1">
             </div>
             <button type="button" id="addItemBtn" class="btn btn-secondary">Add Item</button>
         </form>
@@ -49,6 +49,17 @@
                 <!-- Items will be added here dynamically -->
             </tbody>
         </table>
+        <div id="paymentMethod">
+            <label class="form-label">Payment Method:</label>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="paymentMethod" id="cashPayment" value="cash" checked>
+                <label class="form-check-label" for="cashPayment">Cash</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="paymentMethod" id="cardPayment" value="card">
+                <label class="form-check-label" for="cardPayment">Card</label>
+            </div>
+        </div>
         <div id="invoiceSummary">
             <p>GST (18%): <span id="gstAmount">$0</span></p>
             <p>Grand Total: <span id="grandTotal">$0</span></p>
@@ -85,12 +96,16 @@ document.getElementById('newOrderBtn').addEventListener('click', function() {
 document.getElementById('addItemBtn').addEventListener('click', function() {
     var sizeSelect = document.getElementById('sizeSelect');
     var quantityInput = document.getElementById('quantity');
+    var quantity = parseInt(quantityInput.value);
+    if (quantity < 1) {
+        alert('Quantity must be at least 1');
+        return;
+    }
     var selectedOption = sizeSelect.options[sizeSelect.selectedIndex];
     var product = document.getElementById('productSelect').options[document.getElementById('productSelect').selectedIndex].text;
     var size = selectedOption.text.split(' - ')[0];
     var price = selectedOption.getAttribute('data-price');
     var productId = selectedOption.value;
-    var quantity = quantityInput.value;
     var subtotal = parseFloat(price) * parseInt(quantity);
 
     var newRow = `<tr data-product-id="${productId}">
